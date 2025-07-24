@@ -1,52 +1,76 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from connection_manager import ConnectionManager
+import time
+import json
+
+class BasicDB:
+    """
+    Basic DB implementation. Does not handle race conditions.
+    """
+    def __init__(self):
+        self.dms: dict[tuple[int, int], list[tuple[str, int]]] = {}
+
+    async def get_dm_key(self, sender: int, receiver: int) -> tuple[int, int]:
+        return tuple(sorted([sender, receiver]))
+    
+    async def insert_dm(self, sender: int, receiver: int, content: str, timestamp: int) -> int:
+        key = self.get_dm_key(sender, receiver)
+        
+        if key not in self.dms:
+            self.dms[key] = []
+        
+        self.dms[key].append((content, timestamp))
+
+        return len(self.dms[key])
+
+class RequestHandler:
+    def __init__(self, manager: ConnectionManager, db: BasicDB):
+        self.manager = manager
+        self.db = db
+
+    async def send_direct(self, user_id: int, request: dict):
+        dest = int(request.get("dest"))
+        content = request.get("content")
+        timestamp = int(time.time())
+
+        message_id = await self.db.insert_dm(user_id, dest, content, timestamp)
+
+        data = {
+            "type": "recv[direct]",
+            "sender": user_id, 
+            "content": content, 
+            "timestamp": timestamp, 
+            "id": message_id
+        }
+
+        print(data)
+
+        await manager.send(dest, json.dumps(data))
+
+    async def handle(self, user_id: int, request: dict):
+        action = request.get("type")
+        
+        if action == "send[direct]":
+            await self.send_direct(user_id, request)
 
 app = FastAPI()
-
-# https://fastapi.tiangolo.com/advanced/websockets/#handling-disconnections-and-multiple-clients
-
-class Manager:
-    def __init__(self):
-        self.users: dict[int, list[WebSocket]] = {}
-
-    async def connect(self, user_id: int, websocket: WebSocket):
-        await websocket.accept()
-        
-        if user_id not in self.users:
-            self.users[user_id] = []
-
-        self.users[user_id].append(websocket) 
-
-    def disconnect(self, user_id: int, websocket: WebSocket):
-        if user_id not in self.users:
-            return
-
-        # O(N) to remove but unlikely to be large
-        # May also leave empty list which uses up memory        
-        self.users[user_id].remove(websocket)
-
-    async def send(self, user_id: int, data: dict):
-        if user_id not in self.users:
-            return
-        
-        for connection in self.users[user_id]:
-            await connection.send_json(data)
-
-manager = Manager()
+manager = ConnectionManager()
+db = BasicDB()
+handler = RequestHandler(manager, db)
 
 @app.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: int):
     await manager.connect(user_id, websocket)
 
     try:
-        await manager.send(user_id, f"#{user_id} joined the chat")
-
         while True:
             # Can error if JSON invalid.
-            data = await websocket.receive_json()
-            print(user_id, data)
+            # Assume fully valid for now.
 
-            for user in data["users"]:
-                await manager.send(user, data)
-        
+            request = await websocket.receive_json()
+            print(user_id, request)
+
+            await handler.handle(user_id, request)
+
     except WebSocketDisconnect:
         manager.disconnect(user_id, websocket)
