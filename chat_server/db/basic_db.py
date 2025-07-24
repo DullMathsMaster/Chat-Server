@@ -12,8 +12,8 @@ class BasicDB(DB):
     def get_dm_key(self, sender: int, receiver: int) -> tuple[int, int]:
         return tuple(sorted([sender, receiver]))
     
-    async def insert_dm(self, sender: int, receiver: int, content: str, timestamp: int) -> int:
-        key = self.get_dm_key(sender, receiver)
+    async def insert_dm(self, sender: int, recipient: int, content: str, timestamp: int) -> int:
+        key = self.get_dm_key(sender, recipient)
         
         if key not in self.dms:
             self.dms[key] = []

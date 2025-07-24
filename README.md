@@ -39,7 +39,7 @@ server: recv[direct]*
 Send direct messages to the server.
 
 ```ts
-client: { "type": "send[direct]", "dest_id": user_id, "content": string }
+client: { "type": "send[direct]", "recipient": user_id, "content": string }
 server: recv[direct]
 ```
 
@@ -47,14 +47,21 @@ server: recv[direct]
 Receive direct messages, happening at any time.
 
 ```ts
-server: { "type": "recv[direct]", "sender": user_id, "content": string, "timestamp": number, "id": message_id }
+server: {
+    "type": "recv[direct]", 
+    "sender": user_id, 
+    "recipient": user_id, 
+    "content": string, 
+    "timestamp": number, 
+    "id": message_id 
+}
 ```
 
 #### `get[direct]`
-Get a direct message from the past, by replaying `recv`.
+Get a direct message from the past.
 
 ```ts
-client: { "type": "get[direct]", "dest_id": user_id, "id": message_id }
+client: { "type": "get[direct]", "recipient": user_id, "id": message_id }
 server: recv[direct]
 ```
 
@@ -62,4 +69,3 @@ server: recv[direct]
 There is also a group messaging variant of some commands above.
 
 TODO
-

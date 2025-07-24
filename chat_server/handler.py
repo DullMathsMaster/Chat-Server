@@ -13,21 +13,22 @@ class RequestHandler:
         self.db = db
 
     async def send_direct(self, user_id: int, request: dict):
-        dest_id = int(request.get("dest_id"))
+        recipient = int(request.get("recipient"))
         content = request.get("content")
         timestamp = int(time.time_ns() / 1_000_000)
 
-        message_id = await self.db.insert_dm(user_id, dest_id, content, timestamp)
+        message_id = await self.db.insert_dm(user_id, recipient, content, timestamp)
 
         data = dumps({
             "type": "recv[direct]",
-            "sender": user_id, 
+            "sender": user_id,
+            "recipient": recipient,
             "content": content, 
             "timestamp": timestamp, 
             "id": message_id
         })
 
-        tasks = [self.manager.send(i, data) for i in [user_id, dest_id]]
+        tasks = [self.manager.send(i, data) for i in [user_id, recipient]]
         await gather(*tasks)
 
     async def handle(self, user_id: int, request: dict):
