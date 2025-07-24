@@ -3,6 +3,7 @@ import json
 
 from chat_server.db import DB
 from chat_server.manager import Manager
+from asyncio import gather
 
 __all__ = ["RequestHandler"]
 
@@ -12,21 +13,22 @@ class RequestHandler:
         self.db = db
 
     async def send_direct(self, user_id: int, request: dict):
-        dest = int(request.get("dest"))
+        dest_id = int(request.get("dest_id"))
         content = request.get("content")
         timestamp = int(time.time_ns() / 1_000_000)
 
-        message_id = await self.db.insert_dm(user_id, dest, content, timestamp)
+        message_id = await self.db.insert_dm(user_id, dest_id, content, timestamp)
 
-        data = {
+        data = json.dumps({
             "type": "recv[direct]",
             "sender": user_id, 
             "content": content, 
             "timestamp": timestamp, 
             "id": message_id
-        }
+        })
 
-        await self.manager.send(dest, json.dumps(data))
+        tasks = [self.manager.send(i, data) for i in [user_id, dest_id]]
+        await gather(*tasks)
 
     async def handle(self, user_id: int, request: dict):
         """

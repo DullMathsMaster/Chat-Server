@@ -39,8 +39,8 @@ server: recv[direct]*
 Send direct messages to the server.
 
 ```ts
-client: { "type": "send[direct]", "dest_id": user_id, "content": string, "hash": string }
-server: { "type": "send[direct]", "id": message_id, "timestamp": number, "hash": string }
+client: { "type": "send[direct]", "dest_id": user_id, "content": string }
+server: recv[direct]
 ```
 
 #### `recv[direct]`
