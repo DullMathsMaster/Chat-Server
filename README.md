@@ -7,20 +7,59 @@ Each message in a conversation has a sequential ID, starting from 0.
 
 Time is measured in milliseconds.
 
-### `send[direct]`
-For sending direct messages to the server.
+### Misc
+
+#### `get[user]`
+Get information about a user.
 
 ```ts
-send { "type": "send[direct]", "dest": user_id, "content": string }
-recv { "type": "send[direct]", "id": user_id, "timestamp": number, "hash": string } // Not finalised
+client: { "type": "get[user]", "user": user_id }
+server: { "type": "get[user]", "user": user_id, "name": string, "desc": string }
 ```
 
-The response is necessary to verify that the message has arrived at the server.
-
-### `recv[direct]`
-When receiving direct messages, which happens any time.
+#### `set[user]`
+Set information about yourself.
 
 ```ts
-recv { "type": "recv[direct]", "sender": user_id, "content": string, "timestamp": number, "id": message_id }
+client: { "type": "set[user]", "name": string, "desc": string }
+server: { "type": "set[user]", "name": string, "desc": string }
 ```
+
+#### `update`
+Get all new messages since the start time. There may be a large amount of them so these might be limited.
+
+```ts
+client: { "type": "update", "timestamp": number }
+server: recv[direct]*
+```
+
+### Direct messaging
+
+#### `send[direct]`
+Send direct messages to the server.
+
+```ts
+client: { "type": "send[direct]", "dest_id": user_id, "content": string, "hash": string }
+server: { "type": "send[direct]", "id": message_id, "timestamp": number, "hash": string }
+```
+
+#### `recv[direct]`
+Receive direct messages, happening at any time.
+
+```ts
+server: { "type": "recv[direct]", "sender": user_id, "content": string, "timestamp": number, "id": message_id }
+```
+
+#### `get[direct]`
+Get a direct message from the past, by replaying `recv`.
+
+```ts
+client: { "type": "get[direct]", "dest_id": user_id, "id": message_id }
+server: recv[direct]
+```
+
+### Group messaging
+There is also a group messaging variant of some commands above.
+
+TODO
 
