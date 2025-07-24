@@ -11,7 +11,9 @@ handler = RequestHandler(manager, db)
 
 @app.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: int):
-    await manager.add(user_id, websocket)
+    await websocket.accept()
+
+    manager.add(user_id, websocket)
 
     try:
         while True:

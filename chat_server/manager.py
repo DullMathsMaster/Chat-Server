@@ -1,3 +1,5 @@
+from asyncio import gather
+
 from fastapi import WebSocket
 
 __all__ = ["Manager"]
@@ -6,12 +8,11 @@ class Manager:
     def __init__(self):
         self.users: dict[int, list[WebSocket]] = {}
 
-    async def add(self, user_id: int, websocket: WebSocket):
+    def add(self, user_id: int, websocket: WebSocket):
         """
         Adds the websocket connection to the user.
         """
-        await websocket.accept()
-        
+
         if user_id not in self.users:
             self.users[user_id] = []
 
@@ -35,5 +36,5 @@ class Manager:
         if user_id not in self.users:
             return
         
-        for connection in self.users[user_id]:
-            await connection.send_text(data)
+        tasks = [socket.send_text(data) for socket in self.users[user_id]]
+        await gather(*tasks)

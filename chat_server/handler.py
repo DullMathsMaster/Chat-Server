@@ -1,9 +1,9 @@
 import time
-import json
+from json import dumps
+from asyncio import gather
 
 from chat_server.db import DB
 from chat_server.manager import Manager
-from asyncio import gather
 
 __all__ = ["RequestHandler"]
 
@@ -19,7 +19,7 @@ class RequestHandler:
 
         message_id = await self.db.insert_dm(user_id, dest_id, content, timestamp)
 
-        data = json.dumps({
+        data = dumps({
             "type": "recv[direct]",
             "sender": user_id, 
             "content": content, 
