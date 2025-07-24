@@ -5,12 +5,12 @@ import json
 
 class BasicDB:
     """
-    Basic DB implementation. Does not handle race conditions.
+    Basic DB implementation. Not thread-safe.
     """
     def __init__(self):
         self.dms: dict[tuple[int, int], list[tuple[str, int]]] = {}
 
-    async def get_dm_key(self, sender: int, receiver: int) -> tuple[int, int]:
+    def get_dm_key(self, sender: int, receiver: int) -> tuple[int, int]:
         return tuple(sorted([sender, receiver]))
     
     async def insert_dm(self, sender: int, receiver: int, content: str, timestamp: int) -> int:
@@ -21,7 +21,7 @@ class BasicDB:
         
         self.dms[key].append((content, timestamp))
 
-        return len(self.dms[key])
+        return len(self.dms[key]) - 1
 
 class RequestHandler:
     def __init__(self, manager: ConnectionManager, db: BasicDB):
@@ -31,7 +31,7 @@ class RequestHandler:
     async def send_direct(self, user_id: int, request: dict):
         dest = int(request.get("dest"))
         content = request.get("content")
-        timestamp = int(time.time())
+        timestamp = int(time.time_ns() / 1_000_000)
 
         message_id = await self.db.insert_dm(user_id, dest, content, timestamp)
 

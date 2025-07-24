@@ -5,6 +5,8 @@ Server will assume that each websocket connection only has 1 user, so there is n
 
 Each message in a conversation has a sequential ID, starting from 0.
 
+Time is measured in milliseconds.
+
 ### `send[direct]`
 For sending direct messages to the server.
 
