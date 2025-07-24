@@ -1,0 +1,8 @@
+from abc import ABC, abstractmethod
+
+__all__ = ["DB"]
+
+class DB(ABC):
+    @abstractmethod
+    async def insert_dm(self, sender: int, receiver: int, content: str, timestamp: int) -> int:
+        ...

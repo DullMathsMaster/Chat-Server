@@ -1,6 +1,8 @@
 from fastapi import WebSocket
 
-class ConnectionManager:
+__all__ = ["WSManager"]
+
+class WSManager:
     def __init__(self):
         self.users: dict[int, list[WebSocket]] = {}
 
