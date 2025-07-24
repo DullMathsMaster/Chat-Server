@@ -4,11 +4,9 @@ import json
 from chat_server.db import DB
 from chat_server.manager import Manager
 
-from . import Handler
-
 __all__ = ["RequestHandler"]
 
-class RequestHandler(Handler):
+class RequestHandler:
     def __init__(self, manager: Manager, db: DB):
         self.manager = manager
         self.db = db
@@ -31,6 +29,9 @@ class RequestHandler(Handler):
         await self.manager.send(dest, json.dumps(data))
 
     async def handle(self, user_id: int, request: dict):
+        """
+        Handles the request for the user.
+        """
         action = request.get("type")
         
         if action == "send[direct]":

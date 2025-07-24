@@ -1,17 +1,17 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
-from chat_server.manager.ws_manager import WSManager
+from chat_server.manager import Manager
 from chat_server.db.basic_db import BasicDB
-from chat_server.handler.request_handler import RequestHandler
+from chat_server.handler import RequestHandler
 
 app = FastAPI()
-manager = WSManager()
+manager = Manager()
 db = BasicDB()
 handler = RequestHandler(manager, db)
 
 @app.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: int):
-    await manager.connect(user_id, websocket)
+    await manager.add(user_id, websocket)
 
     try:
         while True:
@@ -24,4 +24,4 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
             await handler.handle(user_id, request)
 
     except WebSocketDisconnect:
-        manager.disconnect(user_id, websocket)
+        manager.remove(user_id, websocket)
