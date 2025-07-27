@@ -26,8 +26,8 @@ class UserProfile(Base):
 
 class Message(Base):
     __tablename__ = "messages"
-    message_id = Column(String, primary_key=True)
-    message_type = Column(String, nullable=False)
+    message_id = Column(Integer, primary_key=True, autoincrement=True)
+    message_type = Column(String, default="DM")
     sender = Column(String(36), ForeignKey("user_profiles.user_id"), nullable=False)
     recipient = Column(String(36), ForeignKey("user_profiles.user_id"), nullable=False)
     content = Column(String, nullable=False)
@@ -39,14 +39,14 @@ Base.metadata.create_all(bind=engine)
 
 
 class DB():
-    def insert_dm(self, sender: int, recipient: int, content: str, timestamp: int) -> int:
+
+    async def insert_dm(self, sender: int, recipient: int, content: str, timestamp: int) -> int:
         """
         Saves a direct message into the DB and returns its corresponding ID.
         """
         print("hello")
-        message_id = generate_uuid()
         db = SessionLocal()
-        message = Message( message_id = message_id,
+        message = Message( 
                         recipient = recipient,
                         sender = sender,
                         timestamp = timestamp,
@@ -55,4 +55,6 @@ class DB():
                                     
         db.add(message)
         db.commit()
-        return message_id
+        db.refresh(message)
+        db.close()
+        return message.message_id

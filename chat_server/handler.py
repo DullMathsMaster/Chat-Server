@@ -16,7 +16,7 @@ class RequestHandler:
         recipient = int(request.get("recipient"))
         content = request.get("content")
         timestamp = int(time.time_ns() / 1_000_000)
-        print(request, "sdufhsdhfg")
+        print(request, content, recipient, "sdufhsdhfg")
         message_id = await self.db.insert_dm(user_id, recipient, content, timestamp)
 
         data = dumps({

@@ -16,7 +16,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
     await websocket.accept()
 
     manager.add(user_id, websocket)
-
+    
     try:
         while True:
             # Can error if JSON invalid.
