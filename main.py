@@ -12,7 +12,7 @@ db = BasicDB()
 handler = RequestHandler(manager, db)
 
 @app.websocket("/ws/{user_id}")
-async def websocket_endpoint(websocket: WebSocket, user_id: int, db: Session = Depends(get_db)):
+async def websocket_endpoint(websocket: WebSocket, user_id: int):
     await websocket.accept()
 
     manager.add(user_id, websocket)
@@ -24,15 +24,6 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db: Session = D
 
             request = await websocket.receive_json()
             print(user_id, request)
-            
-            now_time = str(datetime.now())
-            message = Message( message_type = request["type"],
-                            recipient = request["recipient"],
-                            sender = user_id,
-                            timestamp = now_time,
-                            read = False,
-                            content = request["content"])
-                                     
             
             await handler.handle(user_id, request)
 
