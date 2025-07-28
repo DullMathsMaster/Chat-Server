@@ -7,6 +7,7 @@ from chat_server.manager import Manager
 
 __all__ = ["RequestHandler"]
 
+
 class RequestHandler:
     def __init__(self, manager: Manager, db: DB):
         self.manager = manager
@@ -18,31 +19,31 @@ class RequestHandler:
         timestamp = int(time.time_ns() / 1_000_000)
         message_id = await self.db.insert_dm(user_id, recipient, content, timestamp)
 
-        data = dumps({
-            "type": "recv[direct]",
-            "sender": user_id,
-            "recipient": recipient,
-            "content": content, 
-            "timestamp": timestamp, 
-            "id": message_id
-        })
+        data = dumps(
+            {
+                "type": "recv[direct]",
+                "sender": user_id,
+                "recipient": recipient,
+                "content": content,
+                "timestamp": timestamp,
+                "id": message_id,
+            }
+        )
 
         tasks = [self.manager.send(i, data) for i in [user_id, recipient]]
         await gather(*tasks)
 
     async def reload_messages(self, sender, recipient):
         messages = await self.db.return_conversation(self, sender, recipient)
-        
 
     async def handle(self, user_id: int, request: dict):
         """
         Handles the request for the user.
         """
         action = request.get("type")
-        
+
         if action == "send[direct]":
             await self.send_direct(user_id, request)
-        
-        
+
         elif action == "reload":
             await self.reload_messages(user_id, request.get("recipient"))
