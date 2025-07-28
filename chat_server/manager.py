@@ -38,3 +38,5 @@ class Manager:
         
         tasks = [socket.send_text(data) for socket in self.users[user_id]]
         await gather(*tasks)
+
+    

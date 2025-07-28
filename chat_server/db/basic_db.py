@@ -12,7 +12,7 @@ class BasicDB(DB):
     def get_dm_key(self, sender: int, recipient: int) -> tuple[int, int]:
         return tuple(sorted([sender, recipient]))
     
-    def return_conversation(self, sender: int, recipient: int, limit: int = 100) -> list[tuple[str, str, str, str]]:
+    def return_conversation(self, sender: int, recipient: int, limit: int = 100) -> list[tuple[int, int, str, int]]:
         """
         Returns conversation between two users as a list of tuples.
         Each tuple contains: (sender, recipient, content, timestamp)
@@ -29,6 +29,7 @@ class BasicDB(DB):
             (msg.sender, msg.recipient, msg.content, msg.timestamp)
             for msg in messages
         ]
+        db.close()
         return message_list
 
 

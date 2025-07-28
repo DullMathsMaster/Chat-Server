@@ -29,3 +29,22 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
 
     except WebSocketDisconnect:
         manager.remove(user_id, websocket)
+
+@app.websocket("/messagesws/{user_id}")
+async def message_ws_endpoint(websocket: WebSocket, user_id: int):
+    await websocket.accept()
+
+    manager.add(user_id, websocket)
+    
+    try:
+        while True:
+            # Can error if JSON invalid.
+            # Assume fully valid for now.
+
+            request = await websocket.receive_json()
+            print(user_id, request)
+            
+            await handler.handle(user_id, request)
+
+    except WebSocketDisconnect:
+        manager.remove(user_id, websocket)
