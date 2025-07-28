@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 import uuid
 from fastapi import Depends
 
-# __all__ = ["DB"]
+__all__ = ["DB", "SessionLocal", "Message"]
 
 DATABASE_URL = "sqlite+pysqlite:///././database.db"
 
@@ -28,8 +28,8 @@ class Message(Base):
     __tablename__ = "messages"
     message_id = Column(Integer, primary_key=True, autoincrement=True)
     message_type = Column(String, default="DM")
-    sender = Column(String(36), ForeignKey("user_profiles.user_id"), nullable=False)
-    recipient = Column(String(36), ForeignKey("user_profiles.user_id"), nullable=False)
+    sender = Column(Integer, ForeignKey("user_profiles.user_id"), nullable=False)
+    recipient = Column(Integer, ForeignKey("user_profiles.user_id"), nullable=False)
     content = Column(String, nullable=False)
     timestamp = Column(String, nullable=False)
     read = Column(Boolean, nullable=False, default=False)

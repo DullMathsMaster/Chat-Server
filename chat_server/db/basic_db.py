@@ -1,4 +1,4 @@
-from . import DB
+from . import DB, SessionLocal, Message
 
 __all__ = ["BasicDB"]
 
@@ -9,9 +9,27 @@ class BasicDB(DB):
     def __init__(self):
         self.dms: dict[tuple[int, int], list[tuple[str, int]]] = {}
 
-    def get_dm_key(self, sender: int, receiver: int) -> tuple[int, int]:
-        return tuple(sorted([sender, receiver]))
+    def get_dm_key(self, sender: int, recipient: int) -> tuple[int, int]:
+        return tuple(sorted([sender, recipient]))
     
+    def return_conversation(self, sender: int, recipient: int, limit: int = 100) -> list[tuple[str, str, str, str]]:
+        """
+        Returns conversation between two users as a list of tuples.
+        Each tuple contains: (sender, recipient, content, timestamp)
+        """
+        db = SessionLocal() 
+        messages = db.query(Message).filter(
+            (
+                (Message.sender == sender) & (Message.recipient == recipient) |
+                (Message.sender == recipient) & (Message.recipient == sender)
+            )
+        ).order_by(Message.timestamp.asc()).limit(limit).all()
+        
+        message_list = [
+            (msg.sender, msg.recipient, msg.content, msg.timestamp)
+            for msg in messages
+        ]
+        return message_list
 
 
 
