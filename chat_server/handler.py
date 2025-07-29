@@ -42,7 +42,15 @@ class RequestHandler:
         
         if action == "send[direct]":
             await self.send_direct(user_id, request)
-        
-        
-        elif action == "reload":
+        elif action == "recv[direct]":
+            ...
+        elif action == "get[direct]":
+            ...
+        elif action == "get[user]":
+            ...
+        elif action == "set[user]":
+            ...
+        elif action == "update":
             await self.reload_messages(user_id, request.get("recipient"))
+        
+            
