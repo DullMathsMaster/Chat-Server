@@ -4,6 +4,7 @@ from fastapi import WebSocket
 
 __all__ = ["Manager"]
 
+
 class Manager:
     def __init__(self):
         self.users: dict[int, list[WebSocket]] = {}
@@ -16,7 +17,7 @@ class Manager:
         if user_id not in self.users:
             self.users[user_id] = []
 
-        self.users[user_id].append(websocket) 
+        self.users[user_id].append(websocket)
 
     def remove(self, user_id: int, websocket: WebSocket):
         """
@@ -35,8 +36,6 @@ class Manager:
         """
         if user_id not in self.users:
             return
-        
+
         tasks = [socket.send_text(data) for socket in self.users[user_id]]
         await gather(*tasks)
-
-    
