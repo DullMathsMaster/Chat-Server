@@ -10,8 +10,8 @@ class Base(DeclarativeBase):
     pass
 
 
-class Users(Base):
-    __tablename__ = "users"
+class User(Base):
+    __tablename__ = "user"
 
     user_id: Mapped[int] = mapped_column(primary_key=True)
     image: Mapped[Optional[str]]
@@ -23,8 +23,8 @@ class Message(Base):
     __tablename__ = "messages"
 
     message_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    sender: Mapped[int] = mapped_column(ForeignKey("users.user_id"))
-    recipient: Mapped[int] = mapped_column(ForeignKey("users.user_id"))
+    sender: Mapped[int] = mapped_column(ForeignKey("user.user_id"))
+    recipient: Mapped[int] = mapped_column(ForeignKey("user.user_id"))
     content: Mapped[str]
     timestamp: Mapped[str]
 
@@ -101,7 +101,7 @@ class DB:
     async def find_user(self, user_id: int) -> tuple[int, str, str, str]:
         db = self.Session()
 
-        user = db.query(Users).filter(Users.user_id == user_id).first()
+        user = db.query(User).filter(User.user_id == user_id).first()
 
         db.close()
         return user
@@ -109,7 +109,7 @@ class DB:
     async def create_user(self, user_id: int, name: str, desc: str) -> str:
         db = self.Session()
 
-        user = Users(user_id=user_id, image="", name=name, desc=desc)
+        user = User(user_id=user_id, image="", name=name, desc=desc)
 
         db.add(user)
         db.commit()
