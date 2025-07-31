@@ -69,7 +69,7 @@ class DB:
 
     async def return_conversation(
         self, sender: int, recipient: int, timestamp: int, limit: int = 100
-    ) -> list[tuple[int, int, str, int]]:
+    ) -> list[Message]:
         """
         Returns conversation between two users as a list of tuples.
         Each tuple contains: (sender, recipient, content, timestamp)
@@ -84,21 +84,10 @@ class DB:
             .all()
         )
 
-        message_list = [
-            {
-                "sender": msg.sender,
-                "recipient": msg.recipient,
-                "content": msg.content,
-                "timestamp": msg.timestamp,
-                "id": msg.message_id,
-            }
-            for msg in messages
-        ]
-
         db.close()
-        return message_list
+        return messages
 
-    async def find_user(self, user_id: int) -> tuple[int, str, str, str]:
+    async def find_user(self, user_id: int) -> User | None:
         db = self.Session()
 
         user = db.query(User).filter(User.user_id == user_id).first()
@@ -106,7 +95,7 @@ class DB:
         db.close()
         return user
 
-    async def create_user(self, user_id: int, name: str, desc: str) -> str:
+    async def create_user(self, user_id: int, name: str, desc: str) -> User:
         db = self.Session()
 
         user = User(user_id=user_id, image="", name=name, desc=desc)
@@ -115,9 +104,11 @@ class DB:
         db.commit()
         db.refresh(user)
         db.close()
-        return "success"
+        return user
 
-    async def get_message(self, sender: int, recipient: int, message_id: id) -> dict:
+    async def get_message(
+        self, sender: int, recipient: int, message_id: int
+    ) -> Message | None:
         db = self.Session()
 
         message = (
@@ -125,14 +116,6 @@ class DB:
             .filter(has_chat(sender, recipient), Message.message_id == message_id)
             .first()
         )
-
-        message = {
-            "sender": message.sender,
-            "recipient": message.recipient,
-            "content": message.content,
-            "timestamp": message.timestamp,
-            "id": message.message_id,
-        }
 
         db.close()
         return message

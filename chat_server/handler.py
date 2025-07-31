@@ -14,9 +14,11 @@ class RequestHandler:
         self.db = db
 
     async def send_direct(self, user_id: int, request: dict):
-        recipient = int(request.get("recipient"))
+        recipient = request.get("recipient")
         content = request.get("content")
+
         timestamp = int(time.time_ns() / 1_000_000)
+
         message_id = await self.db.insert_dm(user_id, recipient, content, timestamp)
 
         data = dumps(
@@ -34,31 +36,44 @@ class RequestHandler:
         tasks = [self.manager.send(i, data) for i in {user_id, recipient}]
         await gather(*tasks)
 
-    async def get_user(self, user_id: int):
-        data = await self.db.find_user(user_id)
+    async def get_user(self, user_id: int, request: dict):
+        target_user = request.get("user")
+
+        user = await self.db.find_user(target_user)
+
+        data = dumps(...)
 
         await self.manager.send(user_id, data)
 
     async def set_user(self, user_id: int, request: dict):
         name = request.get("name")
         desc = request.get("desc")
-        success = await self.db.create_user(user_id, name, desc)
 
-        await self.manager.send(user_id, success)
+        user = await self.db.create_user(user_id, name, desc)
 
-    async def get_direct(self, user_id: id, request: dict):
-        recipient = int(request.get("recipient"))
+        data = dumps(...)
+
+        await self.manager.send(user_id, data)
+
+    async def get_direct(self, user_id: int, request: dict):
+        recipient = request.get("recipient")
         message_id = request.get("id")
+
         message = await self.db.get_message(user_id, recipient, message_id)
 
-        await self.manager.send(message)
+        data = dumps(...)
 
-    async def reload_messages(self, user_id, request):
-        recipient = int(request.get("recipient"))
-        timestamp = int(request.get("timestamp"))
+        await self.manager.send(user_id, data)
+
+    async def reload_messages(self, user_id: int, request: dict):
+        recipient = request.get("recipient")
+        timestamp = request.get("timestamp")
+
         messages = await self.db.return_conversation(user_id, recipient, timestamp)
 
-        tasks = [self.manager.send(message) for message in messages]
+        data = dumps(...)
+
+        tasks = [self.manager.send(user_id, d) for d in data]
         await gather(*tasks)
 
     async def handle(self, user_id: int, request: dict):
