@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import create_engine, ForeignKey
+from sqlalchemy import create_engine, ForeignKey, ColumnElement
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, mapped_column, Mapped
 
 __all__ = ["DB", "SessionLocal", "Message"]
@@ -9,8 +9,10 @@ DATABASE_URL = "sqlite+pysqlite:///database.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 class Base(DeclarativeBase):
     pass
+
 
 class Users(Base):
     __tablename__ = "users"
@@ -20,16 +22,27 @@ class Users(Base):
     name: Mapped[str]
     desc: Mapped[Optional[str]]
 
+
 class Message(Base):
     __tablename__ = "messages"
-    
+
     message_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     sender: Mapped[int] = mapped_column(ForeignKey("users.user_id"))
     recipient: Mapped[int] = mapped_column(ForeignKey("users.user_id"))
     content: Mapped[str]
     timestamp: Mapped[str]
 
+
 Base.metadata.create_all(bind=engine)
+
+
+def has_chat(user1: int, user2: int) -> ColumnElement:
+    return (
+        Message.sender == user1
+        and Message.recipient == user2
+        or Message.sender == user2
+        and Message.recipient == user1
+    )
 
 
 class DB:
@@ -64,15 +77,10 @@ class DB:
         Each tuple contains: (sender, recipient, content, timestamp)
         """
         db = SessionLocal()
+
         messages = (
             db.query(Message)
-            .filter(
-                (
-                    ((Message.sender == sender) & (Message.recipient == recipient)
-                    | (Message.sender == recipient) & (Message.recipient == sender))
-                    & (Message.timesstamp >= timestamp)
-                )
-            )
+            .filter(has_chat(sender, recipient), Message.timestamp >= timestamp)
             .order_by(Message.timestamp.asc())
             .limit(limit)
             .all()
@@ -84,54 +92,49 @@ class DB:
                 "recipient": msg.recipient,
                 "content": msg.content,
                 "timestamp": msg.timestamp,
-                "id": msg.message_id
+                "id": msg.message_id,
             }
             for msg in messages
         ]
+
         db.close()
         return message_list
 
     async def find_user(self, user_id: int) -> tuple[int, str, str, str]:
         db = SessionLocal()
-        user = db.query(Users).filter(Users.user_id == user_id).first() #.first returns none if not there
+
+        user = db.query(Users).filter(Users.user_id == user_id).first()
+
         db.close()
         return user
-    
+
     async def create_user(self, user_id: int, name: str, desc: str) -> str:
         db = SessionLocal()
 
-        user = Users(user_id = user_id,
-                           image = "",
-                           name = name,
-                           desc = desc
-        )
+        user = Users(user_id=user_id, image="", name=name, desc=desc)
 
         db.add(user)
         db.commit()
         db.refresh(user)
         db.close()
         return "success"
-    
+
     async def get_message(self, sender: int, recipient: int, message_id: id) -> dict:
         db = SessionLocal()
+
         message = (
             db.query(Message)
-            .filter(
-                (
-                    ((Message.sender == sender) & (Message.recipient == recipient)
-                    | (Message.sender == recipient) & (Message.recipient == sender))
-                    & (Message.message_id == message_id)
-
-                )
-            )
+            .filter(has_chat(sender, recipient), Message.message_id == message_id)
+            .first()
         )
 
-        message = {"sender": message[0].sender, 
-                   "recipient": message[0].recipient, 
-                   "content": message[0].content, 
-                   "timesstamp": message[0].timestamp,
-                   "id": message[0].message_id}
+        message = {
+            "sender": message.sender,
+            "recipient": message.recipient,
+            "content": message.content,
+            "timestamp": message.timestamp,
+            "id": message.message_id,
+        }
+
         db.close()
         return message
-
-    
