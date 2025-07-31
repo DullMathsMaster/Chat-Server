@@ -39,7 +39,7 @@ def has_chat(user1: int, user2: int) -> ColumnElement:
 
 
 class DB:
-    def __init__(self, url: str = "sqlite+pysqlite:///database.db"):
+    def __init__(self, url: str):
         engine = create_engine(url, connect_args={"check_same_thread": False})
         self.Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         Base.metadata.create_all(bind=engine)

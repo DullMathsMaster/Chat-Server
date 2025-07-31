@@ -7,7 +7,7 @@ from chat_server.handler import RequestHandler
 
 app = FastAPI()
 manager = Manager()
-db = DB()
+db = DB("sqlite+pysqlite:///database.db")
 handler = RequestHandler(manager, db)
 
 
