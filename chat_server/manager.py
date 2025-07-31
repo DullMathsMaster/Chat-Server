@@ -6,10 +6,10 @@ __all__ = ["Manager"]
 
 
 class Manager:
-    def __init__(self):
+    def __init__(self) -> None:
         self.users: dict[int, list[WebSocket]] = {}
 
-    def add(self, user_id: int, websocket: WebSocket):
+    def add(self, user_id: int, websocket: WebSocket) -> None:
         """
         Adds the websocket connection to the user.
         """
@@ -19,7 +19,7 @@ class Manager:
 
         self.users[user_id].append(websocket)
 
-    def remove(self, user_id: int, websocket: WebSocket):
+    def remove(self, user_id: int, websocket: WebSocket) -> None:
         """
         Removes the websocket connection from the user.
         """
@@ -30,7 +30,7 @@ class Manager:
         # May also leave empty list which uses up memory
         self.users[user_id].remove(websocket)
 
-    async def send(self, user_id: int, data: str):
+    async def send(self, user_id: int, data: str) -> None:
         """
         Send data to all websockets for that user.
         """
