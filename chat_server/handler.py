@@ -30,32 +30,36 @@ class RequestHandler:
             }
         )
 
-        tasks = [self.manager.send(i, data) for i in [user_id, recipient]]
+        # Use a set to only send once if sending to self
+        tasks = [self.manager.send(i, data) for i in {user_id, recipient}]
         await gather(*tasks)
-
 
     async def get_user(self, user_id: int):
         data = await self.db.find_user(user_id)
-        self.manager.send(user_id, data)
+
+        await self.manager.send(user_id, data)
 
     async def set_user(self, user_id: int, request: dict):
         name = request.get("name")
         desc = request.get("desc")
         success = await self.db.create_user(user_id, name, desc)
-        self.manager.send(user_id, success)
-    
+
+        await self.manager.send(user_id, success)
+
     async def get_direct(self, user_id: id, request: dict):
         recipient = int(request.get("recipient"))
         message_id = request.get("id")
         message = await self.db.get_message(user_id, recipient, message_id)
-        self.manager.send(message)
+
+        await self.manager.send(message)
 
     async def reload_messages(self, user_id, request):
         recipient = int(request.get("recipient"))
         timestamp = int(request.get("timestamp"))
-        messages = await self.db.return_conversation(self, user_id, recipient, timestamp)
-        for message in messages:
-            self.manager.send(message)
+        messages = await self.db.return_conversation(user_id, recipient, timestamp)
+
+        tasks = [self.manager.send(message) for message in messages]
+        await gather(*tasks)
 
     async def handle(self, user_id: int, request: dict):
         """
@@ -77,5 +81,3 @@ class RequestHandler:
 
         elif action == "update":
             await self.reload_messages(user_id, request)
-        
-            
