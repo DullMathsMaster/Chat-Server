@@ -20,8 +20,8 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-class UserProfile(Base):
-    __tablename__ = "user_profiles"
+class Users(Base):
+    __tablename__ = "users"
     user_id = Column(Integer, primary_key=True, nullable=False)
     image = Column(String)
     name = Column(String, nullable=False)
@@ -31,12 +31,10 @@ class UserProfile(Base):
 class Message(Base):
     __tablename__ = "messages"
     message_id = Column(Integer, primary_key=True, autoincrement=True)
-    message_type = Column(String, default="DM")
-    sender = Column(Integer, ForeignKey("user_profiles.user_id"), nullable=False)
-    recipient = Column(Integer, ForeignKey("user_profiles.user_id"), nullable=False)
+    sender = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    recipient = Column(Integer, ForeignKey("users.user_id"), nullable=False)
     content = Column(String, nullable=False)
     timestamp = Column(String, nullable=False)
-    read = Column(Boolean, nullable=False, default=False)
 
 
 Base.metadata.create_all(bind=engine)
@@ -56,7 +54,6 @@ class DB:
             recipient=recipient,
             sender=sender,
             timestamp=timestamp,
-            read=False,
             content=content,
         )
 
@@ -104,14 +101,14 @@ class DB:
 
     async def find_user(self, user_id: int) -> tuple[int, str, str, str]:
         db = SessionLocal()
-        user = db.query(UserProfile).filter(UserProfile.user_id == user_id).first() #.first returns none if not there
+        user = db.query(Users).filter(Users.user_id == user_id).first() #.first returns none if not there
         db.close()
         return user
     
     async def create_user(self, user_id: int, name: str, desc: str) -> str:
         db = SessionLocal()
 
-        user = UserProfile(user_id = user_id,
+        user = Users(user_id = user_id,
                            image = "",
                            name = name,
                            desc = desc
