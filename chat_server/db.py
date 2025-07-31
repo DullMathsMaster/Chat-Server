@@ -20,7 +20,7 @@ class User(Base):
 
 
 class Message(Base):
-    __tablename__ = "messages"
+    __tablename__ = "message"
 
     message_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     sender: Mapped[int] = mapped_column(ForeignKey("user.user_id"))
@@ -29,7 +29,7 @@ class Message(Base):
     timestamp: Mapped[str]
 
 
-def has_chat(user1: int, user2: int) -> ColumnElement:
+def has_chat(user1: int, user2: int) -> ColumnElement[bool]:
     return (
         Message.sender == user1
         and Message.recipient == user2
