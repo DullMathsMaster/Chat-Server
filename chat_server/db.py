@@ -1,15 +1,7 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import (
-    create_engine,
-    Column,
-    Integer,
-    String,
-    DateTime,
-    Boolean,
-    ForeignKey,
-)
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from typing import Optional
+
+from sqlalchemy import create_engine, ForeignKey
+from sqlalchemy.orm import sessionmaker, DeclarativeBase, mapped_column, Mapped
 
 __all__ = ["DB", "SessionLocal", "Message"]
 
@@ -17,25 +9,25 @@ DATABASE_URL = "sqlite+pysqlite:///database.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
-
+class Base(DeclarativeBase):
+    pass
 
 class Users(Base):
     __tablename__ = "users"
-    user_id = Column(Integer, primary_key=True, nullable=False)
-    image = Column(String)
-    name = Column(String, nullable=False)
-    desc = Column(String)
 
+    user_id: Mapped[int] = mapped_column(primary_key=True)
+    image: Mapped[Optional[str]]
+    name: Mapped[str]
+    desc: Mapped[Optional[str]]
 
 class Message(Base):
     __tablename__ = "messages"
-    message_id = Column(Integer, primary_key=True, autoincrement=True)
-    sender = Column(Integer, ForeignKey("users.user_id"), nullable=False)
-    recipient = Column(Integer, ForeignKey("users.user_id"), nullable=False)
-    content = Column(String, nullable=False)
-    timestamp = Column(String, nullable=False)
-
+    
+    message_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    sender: Mapped[int] = mapped_column(ForeignKey("users.user_id"))
+    recipient: Mapped[int] = mapped_column(ForeignKey("users.user_id"))
+    content: Mapped[str]
+    timestamp: Mapped[str]
 
 Base.metadata.create_all(bind=engine)
 
