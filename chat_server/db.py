@@ -3,11 +3,7 @@ from typing import Optional
 from sqlalchemy import create_engine, ForeignKey, ColumnElement
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, mapped_column, Mapped
 
-__all__ = ["DB", "SessionLocal", "Message"]
-
-DATABASE_URL = "sqlite+pysqlite:///database.db"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+__all__ = ["DB"]
 
 
 class Base(DeclarativeBase):
@@ -33,9 +29,6 @@ class Message(Base):
     timestamp: Mapped[str]
 
 
-Base.metadata.create_all(bind=engine)
-
-
 def has_chat(user1: int, user2: int) -> ColumnElement:
     return (
         Message.sender == user1
@@ -46,6 +39,11 @@ def has_chat(user1: int, user2: int) -> ColumnElement:
 
 
 class DB:
+    def __init__(self, url: str = "sqlite+pysqlite:///database.db"):
+        engine = create_engine(url, connect_args={"check_same_thread": False})
+        self.Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        Base.metadata.create_all(bind=engine)
+
     async def insert_dm(
         self, sender: int, recipient: int, content: str, timestamp: int
     ) -> int:
@@ -53,7 +51,7 @@ class DB:
         Saves a direct message into the DB and returns its corresponding ID.
         """
 
-        db = SessionLocal()
+        db = self.Session()
 
         message = Message(
             recipient=recipient,
@@ -76,7 +74,7 @@ class DB:
         Returns conversation between two users as a list of tuples.
         Each tuple contains: (sender, recipient, content, timestamp)
         """
-        db = SessionLocal()
+        db = self.Session()
 
         messages = (
             db.query(Message)
@@ -101,7 +99,7 @@ class DB:
         return message_list
 
     async def find_user(self, user_id: int) -> tuple[int, str, str, str]:
-        db = SessionLocal()
+        db = self.Session()
 
         user = db.query(Users).filter(Users.user_id == user_id).first()
 
@@ -109,7 +107,7 @@ class DB:
         return user
 
     async def create_user(self, user_id: int, name: str, desc: str) -> str:
-        db = SessionLocal()
+        db = self.Session()
 
         user = Users(user_id=user_id, image="", name=name, desc=desc)
 
@@ -120,7 +118,7 @@ class DB:
         return "success"
 
     async def get_message(self, sender: int, recipient: int, message_id: id) -> dict:
-        db = SessionLocal()
+        db = self.Session()
 
         message = (
             db.query(Message)
