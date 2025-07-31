@@ -1,0 +1,4 @@
+-r release.txt
+
+black
+mypy

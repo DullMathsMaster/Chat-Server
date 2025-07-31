@@ -1,5 +1,23 @@
 # Chat-Server
 
+To install and run... (ideally in a venv)
+
+```bash
+pip install -r requirements/release.txt
+fastapi dev
+```
+
+## Development
+
+For developing...
+
+```bash
+pip install -r requirements/dev.txt
+```
+
+We use [black](https://github.com/psf/black) for formatting and [mypy](https://github.com/python/mypy) to check types.
+
+
 ## Protocol
 Server will assume that each websocket connection only has 1 user, so there is no need to specify sender ID. 
 

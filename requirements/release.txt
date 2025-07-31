@@ -1,3 +1,2 @@
 fastapi[standard]==0.116.1
 SQLAlchemy==2.0.41
-black==25.1.0
