@@ -1,4 +1,7 @@
 __pycache__
-tempCodeRunnerFile.py
+.venv
+.mypy_cache
 data
+
+tempCodeRunnerFile.py
 **/*.db
