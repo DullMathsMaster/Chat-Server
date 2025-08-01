@@ -27,12 +27,19 @@ Time is measured in milliseconds.
 
 ### Misc
 
+#### `recv[user]`
+Receive information about a user, happening at any time
+
+```ts
+client: { "type": "recv[user]", "user": user_id, "name": string, "desc": string }
+```
+
 #### `get[user]`
 Get information about a user.
 
 ```ts
 client: { "type": "get[user]", "user": user_id }
-server: { "type": "get[user]", "user": user_id, "name": string, "desc": string }
+server: recv[user]
 ```
 
 #### `set[user]`
@@ -40,7 +47,7 @@ Set information about yourself.
 
 ```ts
 client: { "type": "set[user]", "name": string, "desc": string }
-server: { "type": "set[user]", "name": string, "desc": string }
+server: recv[user]
 ```
 
 #### `update`
@@ -52,14 +59,6 @@ server: recv[direct]*
 ```
 
 ### Direct messaging
-
-#### `send[direct]`
-Send direct messages to the server.
-
-```ts
-client: { "type": "send[direct]", "recipient": user_id, "content": string }
-server: recv[direct]
-```
 
 #### `recv[direct]`
 Receive direct messages, happening at any time.
@@ -74,6 +73,15 @@ server: {
     "id": message_id 
 }
 ```
+
+#### `send[direct]`
+Send direct messages to the server.
+
+```ts
+client: { "type": "send[direct]", "recipient": user_id, "content": string }
+server: recv[direct]
+```
+
 
 #### `get[direct]`
 Get a direct message from the past.
