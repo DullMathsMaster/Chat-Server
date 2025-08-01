@@ -4,13 +4,14 @@ To install and run... (ideally in a venv)
 
 ```bash
 pip install -r requirements/release.txt
-fastapi dev
+fastapi run
 ```
 
 ## Development
 
 ```bash
 pip install -r requirements/dev.txt
+fastapi dev
 ```
 
 - To format, use [black](https://github.com/psf/black).
