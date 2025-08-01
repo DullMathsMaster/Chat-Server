@@ -41,7 +41,7 @@ server: recv[direct]*
 Receive information about a user, happening at any time
 
 ```ts
-client: { "type": "recv[user]", "user": user_id, "name": string, "desc": string }
+server: { "type": "recv[user]", "user": user_id, "name": string, "desc": string }
 ```
 
 #### `get[user]`
