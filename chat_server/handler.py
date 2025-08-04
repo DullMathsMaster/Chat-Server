@@ -28,7 +28,7 @@ class RequestHandler:
                 "recipient": recipient,
                 "content": content,
                 "timestamp": timestamp,
-                "id": message_id,
+                "id": str(message_id),
             }
         )
 
@@ -41,7 +41,15 @@ class RequestHandler:
 
         user = await self.db.find_user(target_user)
 
-        data = dumps(...)
+        data = dumps(
+            {
+            "type": "recv[user]",
+            "user_id": user.user_id,
+            "image": user.image,
+            "name": user.name,
+            "desc": user.desc
+            }
+        )
 
         await self.manager.send(user_id, data)
 
@@ -51,7 +59,15 @@ class RequestHandler:
 
         user = await self.db.create_user(user_id, name, desc)
 
-        data = dumps(...)
+        data = dumps(
+            {
+                "type": "set[user]",
+                "user_id": user.user_id,
+                "image": user.image,
+                "name": user.name,
+                "desc": user.desc
+            }
+        )
 
         await self.manager.send(user_id, data)
 
@@ -61,7 +77,17 @@ class RequestHandler:
 
         message = await self.db.get_message(user_id, recipient, message_id)
 
-        data = dumps(...)
+        data = dumps(
+            {
+                "type": "recv[direct]",
+                "sender": message.sender,
+                "recipient": message.recipient,
+                "content": message.content,
+                "timestamp": message.timestamp,
+                "sequence_no": message.sequence_no,
+                "id": str(message.message_id),
+            }
+        )
 
         await self.manager.send(user_id, data)
 
@@ -71,7 +97,20 @@ class RequestHandler:
 
         messages = await self.db.return_conversation(user_id, recipient, timestamp)
 
-        data = dumps(...)
+        data = [
+            dumps(
+                {
+                    "type": "recv[direct]",
+                    "sender": msg.sender,
+                    "recipient": msg.recipient,
+                    "content": msg.content,
+                    "timestamp": msg.timestamp,
+                    "sequence_no": msg.sequence_no,
+                    "id": str(msg.message_id),
+                }
+            )
+            for msg in messages
+        ]
 
         tasks = [self.manager.send(user_id, d) for d in data]
         await gather(*tasks)
