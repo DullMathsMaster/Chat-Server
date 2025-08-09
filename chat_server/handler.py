@@ -117,19 +117,19 @@ class RequestHandler:
         """
         Handles the request for the user.
         """
-        action = request.get("type")
+        request_type = request.get("type")
 
-        if action == "send[direct]":
-            await self.send_direct(user_id, request)
+        actions = {
+            "send[direct]": self.send_direct,
+            "get[direct]": self.get_direct,
+            "get[user]": self.get_user,
+            "set[user]": self.set_user,
+            "update": self.reload_messages,
+        }
 
-        elif action == "get[direct]":
-            await self.get_direct(user_id, request)
+        action = actions.get(request_type)
 
-        elif action == "get[user]":
-            await self.get_user(user_id, request)
+        if action is None:
+            return
 
-        elif action == "set[user]":
-            await self.set_user(user_id, request)
-
-        elif action == "update":
-            await self.reload_messages(user_id, request)
+        await action(user_id, request)
