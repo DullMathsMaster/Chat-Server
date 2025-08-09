@@ -72,7 +72,7 @@ server: {
     "recipient": user_id, 
     "content": string, 
     "timestamp": number, 
-    "id": message_id 
+    "seq_no": int
 }
 ```
 
@@ -80,7 +80,7 @@ server: {
 Get a direct message from the past.
 
 ```ts
-client: { "type": "get[direct]", "recipient": user_id, "id": message_id }
+client: { "type": "get[direct]", "recipient": user_id, "seq_no": int }
 server: recv[direct]
 ```
 
