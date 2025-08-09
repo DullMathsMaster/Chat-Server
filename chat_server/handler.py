@@ -19,7 +19,7 @@ class RequestHandler:
 
         timestamp = int(time.time_ns() / 1_000_000)
 
-        message_id = await self.db.insert_dm(user_id, recipient, content, timestamp)
+        sequence_no = await self.db.insert_dm(user_id, recipient, content, timestamp)
 
         data = dumps(
             {
@@ -28,7 +28,7 @@ class RequestHandler:
                 "recipient": recipient,
                 "content": content,
                 "timestamp": timestamp,
-                "id": str(message_id),
+                "seq_no": sequence_no,
             }
         )
 
@@ -43,11 +43,11 @@ class RequestHandler:
 
         data = dumps(
             {
-            "type": "recv[user]",
-            "user_id": user.user_id,
-            "image": user.image,
-            "name": user.name,
-            "desc": user.desc
+                "type": "recv[user]",
+                "user_id": user.user_id,
+                "image": user.image,
+                "name": user.name,
+                "desc": user.desc,
             }
         )
 
@@ -65,7 +65,7 @@ class RequestHandler:
                 "user_id": user.user_id,
                 "image": user.image,
                 "name": user.name,
-                "desc": user.desc
+                "desc": user.desc,
             }
         )
 
@@ -73,9 +73,9 @@ class RequestHandler:
 
     async def get_direct(self, user_id: int, request: dict):
         recipient = request.get("recipient")
-        message_id = request.get("id")
+        sequence_no = request.get("seq_no")
 
-        message = await self.db.get_message(user_id, recipient, message_id)
+        message = await self.db.get_message(user_id, recipient, sequence_no)
 
         data = dumps(
             {
@@ -84,8 +84,7 @@ class RequestHandler:
                 "recipient": message.recipient,
                 "content": message.content,
                 "timestamp": message.timestamp,
-                "sequence_no": message.sequence_no,
-                "id": str(message.message_id),
+                "seq_no": message.sequence_no,
             }
         )
 
@@ -105,8 +104,7 @@ class RequestHandler:
                     "recipient": msg.recipient,
                     "content": msg.content,
                     "timestamp": msg.timestamp,
-                    "sequence_no": msg.sequence_no,
-                    "id": str(msg.message_id),
+                    "seq_no": msg.sequence_no,
                 }
             )
             for msg in messages
@@ -119,19 +117,19 @@ class RequestHandler:
         """
         Handles the request for the user.
         """
-        action = request.get("type")
+        request_type = request.get("type")
 
-        if action == "send[direct]":
-            await self.send_direct(user_id, request)
+        actions = {
+            "send[direct]": self.send_direct,
+            "get[direct]": self.get_direct,
+            "get[user]": self.get_user,
+            "set[user]": self.set_user,
+            "update": self.reload_messages,
+        }
 
-        elif action == "get[direct]":
-            await self.get_direct(user_id, request)
+        action = actions.get(request_type)
 
-        elif action == "get[user]":
-            await self.get_user(user_id, request)
+        if action is None:
+            return
 
-        elif action == "set[user]":
-            await self.set_user(user_id, request)
-
-        elif action == "update":
-            await self.reload_messages(user_id, request)
+        await action(user_id, request)

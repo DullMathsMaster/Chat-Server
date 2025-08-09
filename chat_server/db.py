@@ -13,7 +13,6 @@ class Base(DeclarativeBase):
     pass
 
 
-
 class User(Base):
     __tablename__ = "user"
 
@@ -26,9 +25,10 @@ class User(Base):
 class Message(Base):
     __tablename__ = "message"
 
-    
-    message_id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    sequence_no: Mapped[int] 
+    message_id: Mapped[str] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    sequence_no: Mapped[int]
     sender: Mapped[int] = mapped_column(ForeignKey("user.user_id"))
     recipient: Mapped[int] = mapped_column(ForeignKey("user.user_id"))
     content: Mapped[str]
@@ -38,7 +38,7 @@ class Message(Base):
 def has_chat(user1: int, user2: int) -> ColumnElement[bool]:
     return or_(
         and_(Message.sender == user1, Message.recipient == user2),
-        and_(Message.sender == user2, Message.recipient == user1)
+        and_(Message.sender == user2, Message.recipient == user1),
     )
 
 
@@ -50,25 +50,24 @@ class DB:
 
     async def insert_dm(
         self, sender: int, recipient: int, content: str, timestamp: int
-    ) -> str:
+    ) -> int:
         """
-        Saves a direct message into the DB and returns its corresponding ID.
+        Saves a direct message into the DB and returns its corresponding sequence number.
         """
 
         with self.Session() as db:
-            
-            seq_no = (
+
+            row = (
                 db.query(Message.sequence_no)
                 .filter(has_chat(sender, recipient))
                 .order_by(Message.timestamp.desc())
                 .first()
             )
 
-            seq_no = (seq_no[0] if seq_no else 0) 
-
+            seq_no = row.index(0) + 1 if row else 0
 
             message = Message(
-                sequence_no=seq_no+1,
+                sequence_no=seq_no,
                 recipient=recipient,
                 sender=sender,
                 timestamp=timestamp,
@@ -79,7 +78,7 @@ class DB:
             db.commit()
             db.refresh(message)
 
-        return message.message_id
+        return message.sequence_no
 
     async def return_conversation(
         self, sender: int, recipient: int, timestamp: int, limit: int = 100
@@ -121,13 +120,13 @@ class DB:
         return user
 
     async def get_message(
-        self, sender: int, recipient: int, message_id: int
+        self, sender: int, recipient: int, sequence_no: int
     ) -> Message | None:
         db = self.Session()
 
         message = (
             db.query(Message)
-            .filter(has_chat(sender, recipient), Message.message_id == message_id)
+            .filter(has_chat(sender, recipient), Message.sequence_no == sequence_no)
             .first()
         )
 
