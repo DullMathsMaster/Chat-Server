@@ -58,10 +58,10 @@ class DB:
         with self.Session() as db:
             
             seq_no = (
-            db.query(Message.sequence_no)
-            .filter(has_chat(sender, recipient))
-            .order_by(Message.timestamp.desc())
-            .first()
+                db.query(Message.sequence_no)
+                .filter(has_chat(sender, recipient))
+                .order_by(Message.timestamp.desc())
+                .first()
             )
 
             seq_no = (seq_no[0] if seq_no else 0) 
