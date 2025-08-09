@@ -1,6 +1,6 @@
 import time
-from json import dumps
 from asyncio import gather
+from json import dumps
 
 from chat_server.db import DB
 from chat_server.manager import Manager

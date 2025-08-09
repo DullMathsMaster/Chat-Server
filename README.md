@@ -14,7 +14,7 @@ pip install -r requirements/dev.txt
 fastapi dev
 ```
 
-- To format, use [black](https://github.com/psf/black).
+- To format, use [ruff](https://github.com/astral-sh/ruff).
 - To type check, use [mypy](https://github.com/python/mypy).
 - To test, run the `tests.py` file.
 

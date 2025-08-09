@@ -1,7 +1,6 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
-from chat_server import Manager, DB, RequestHandler
-
+from chat_server import DB, Manager, RequestHandler
 
 app = FastAPI()
 manager = Manager()

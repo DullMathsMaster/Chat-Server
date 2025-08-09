@@ -1,5 +1,5 @@
-from unittest import IsolatedAsyncioTestCase, main
 from json import loads
+from unittest import IsolatedAsyncioTestCase, main
 
 from chat_server.db import DB
 from chat_server.handler import RequestHandler
