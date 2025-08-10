@@ -62,7 +62,7 @@ class DB:
                 .first()
             )
 
-            seq_no = row.index(0) + 1 if row else 0
+            seq_no = row.tuple()[0] + 1 if row else 0
 
             message = Message(
                 sequence_no=seq_no,
