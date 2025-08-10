@@ -1,10 +1,9 @@
-from typing import Optional
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import create_engine, ForeignKey, ColumnElement
-from sqlalchemy.orm import sessionmaker, DeclarativeBase, mapped_column, Mapped
-from sqlalchemy import or_, and_
 import uuid
+from typing import Optional
 
+from sqlalchemy import ColumnElement, ForeignKey, and_, create_engine, or_
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 __all__ = ["DB"]
 
@@ -56,7 +55,6 @@ class DB:
         """
 
         with self.Session() as db:
-
             row = (
                 db.query(Message.sequence_no)
                 .filter(has_chat(sender, recipient))
