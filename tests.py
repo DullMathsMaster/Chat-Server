@@ -15,9 +15,12 @@ class DummyManager:
 
 class HandlerTest(IsolatedAsyncioTestCase):
     def setUp(self):
-        db = DB("sqlite+pysqlite:///:memory:?cache=shared")
+        db = DB("sqlite+pysqlite:///:memory:")
         self.manager = DummyManager()
         self.handler = RequestHandler(self.manager, db)
+
+    def tearDown(self):
+        self.handler.db.close()
 
     async def test_send_direct(self):
         await self.handler.send_direct(

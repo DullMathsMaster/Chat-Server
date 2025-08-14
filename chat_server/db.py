@@ -43,9 +43,12 @@ def has_chat(user1: int, user2: int) -> ColumnElement[bool]:
 
 class DB:
     def __init__(self, url: str):
-        engine = create_engine(url, connect_args={"check_same_thread": False})
-        self.Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-        Base.metadata.create_all(bind=engine)
+        self.engine = create_engine(url, connect_args={"check_same_thread": False})
+        self.Session = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+        Base.metadata.create_all(bind=self.engine)
+
+    def close(self):
+        self.engine.dispose()
 
     async def insert_dm(
         self, sender: int, recipient: int, content: str, timestamp: int
@@ -62,7 +65,7 @@ class DB:
                 .first()
             )
 
-            seq_no = row.tuple()[0] + 1 if row else 0
+            seq_no = row._tuple()[0] + 1 if row else 0
 
             message = Message(
                 sequence_no=seq_no,
