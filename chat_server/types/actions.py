@@ -1,15 +1,8 @@
 from pydantic import BaseModel, ConfigDict
 
-__all__ = [
-    "Action",
-    "Update",
-    "RecvUser",
-    "GetUser",
-    "SetUser",
-    "RecvDirect",
-    "GetDirect",
-    "SendDirect",
-]
+__all__ = ["Action", "action_models"]
+
+
 
 
 class Action(BaseModel):
@@ -52,3 +45,15 @@ class GetDirect(Action):
 class SendDirect(Action):
     recipient: int
     content: str
+
+
+
+action_models = {
+    "Update": Update,
+    "RecvUser": RecvUser,
+    "GetUser": GetUser,
+    "SetUser": SetUser,
+    "RecvDirect": RecvDirect,
+    "GetDirect": GetDirect,
+    "SendDirect": SendDirect,
+}

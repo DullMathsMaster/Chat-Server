@@ -1,6 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from pydantic import ValidationError
+from chat_server import DB, Manager, RequestHandler, types
 
-from chat_server import DB, Manager, RequestHandler
 
 app = FastAPI()
 manager = Manager()
@@ -16,13 +17,25 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
 
     try:
         while True:
-            # Can error if JSON invalid.
-            # Assume fully valid for now.
+            
+            try:
+                request = await websocket.receive_json()  # print(user_id, request)
+                base = types.Action(**request)
+                model_cls = types.action_models.get(base.type)
 
-            request = await websocket.receive_json()
-            print(user_id, request)
+                if not model_cls:
+                    print("unkown type")
+                    continue
 
-            await handler.handle(user_id, request)
+                # compare to type
+                data = model_cls(**request)
+
+                await handler.handle(user_id, data)
+
+
+            except ValidationError as e:
+                print(e)
+
 
     except WebSocketDisconnect:
         manager.remove(user_id, websocket)

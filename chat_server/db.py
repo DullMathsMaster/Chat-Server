@@ -62,7 +62,7 @@ class DB:
                 .first()
             )
 
-            seq_no = row.index(0) + 1 if row else 0
+            seq_no = row[0] + 1 if row else 0
 
             message = Message(
                 sequence_no=seq_no,
@@ -109,7 +109,7 @@ class DB:
     async def create_user(self, user_id: int, name: str, desc: str) -> User:
         db = self.Session()
 
-        user = User(user_id=user_id, image="", name=name, desc=desc)
+        user = User(user_id=user_id, name=name, desc=desc)
 
         db.add(user)
         db.commit()

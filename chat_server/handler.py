@@ -37,9 +37,12 @@ class RequestHandler:
         await gather(*tasks)
 
     async def get_user(self, user_id: int, request: dict):
-        target_user = request.get("user")
-
-        user = await self.db.find_user(target_user)
+        match = request.get("user_id")
+        user = await self.db.find_user(match)
+        
+        if not user:
+            print(f"user {user_id} not found")
+            return
 
         data = dumps(
             {
@@ -61,7 +64,7 @@ class RequestHandler:
 
         data = dumps(
             {
-                "type": "set[user]",
+                "type": "recv[user]",
                 "user_id": user.user_id,
                 "image": user.image,
                 "name": user.name,
