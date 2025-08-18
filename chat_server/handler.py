@@ -2,6 +2,8 @@ import time
 from asyncio import gather
 from json import dumps
 
+from pydantic import ValidationError
+from chat_server.types.actions import Action, action_models
 from chat_server.db import DB
 from chat_server.manager import Manager
 
@@ -13,9 +15,9 @@ class RequestHandler:
         self.manager = manager
         self.db = db
 
-    async def send_direct(self, user_id: int, request: dict):
-        recipient = request.get("recipient")
-        content = request.get("content")
+    async def send_direct(self, user_id: int, request: Action):
+        recipient = request.recipient
+        content = request.content
 
         timestamp = int(time.time_ns() / 1_000_000)
 
@@ -32,12 +34,11 @@ class RequestHandler:
             }
         )
 
-        # Use a set to only send once if sending to self
         tasks = [self.manager.send(i, data) for i in {user_id, recipient}]
         await gather(*tasks)
 
-    async def get_user(self, user_id: int, request: dict):
-        match = request.get("user_id")
+    async def get_user(self, user_id: int, request: Action):
+        match = request.user_id
         user = await self.db.find_user(match)
         
         if not user:
@@ -56,9 +57,9 @@ class RequestHandler:
 
         await self.manager.send(user_id, data)
 
-    async def set_user(self, user_id: int, request: dict):
-        name = request.get("name")
-        desc = request.get("desc")
+    async def set_user(self, user_id: int, request: Action):
+        name = request.name
+        desc = request.desc
 
         user = await self.db.create_user(user_id, name, desc)
 
@@ -74,9 +75,9 @@ class RequestHandler:
 
         await self.manager.send(user_id, data)
 
-    async def get_direct(self, user_id: int, request: dict):
-        recipient = request.get("recipient")
-        sequence_no = request.get("seq_no")
+    async def get_direct(self, user_id: int, request: Action):
+        recipient = request.recipient
+        sequence_no = request.seq_no
 
         message = await self.db.get_message(user_id, recipient, sequence_no)
 
@@ -93,11 +94,10 @@ class RequestHandler:
 
         await self.manager.send(user_id, data)
 
-    async def reload_messages(self, user_id: int, request: dict):
-        recipient = request.get("recipient")
-        timestamp = request.get("timestamp")
+    async def reload_messages(self, user_id: int, request: Action):
+        timestamp = request.timestamp
 
-        messages = await self.db.return_conversation(user_id, recipient, timestamp)
+        messages = await self.db.return_conversation(user_id, timestamp)
 
         data = [
             dumps(
@@ -117,10 +117,20 @@ class RequestHandler:
         await gather(*tasks)
 
     async def handle(self, user_id: int, request: dict):
-        """
-        Handles the request for the user.
-        """
+
         request_type = request.get("type")
+        model_cls = action_models.get(request_type)
+
+        if not model_cls:
+            print(f"unknown request type: {request_type}")
+            return
+
+        try:
+            validated = model_cls(**request)
+        except ValidationError as e:
+            print("validation error:", e)
+            return
+
 
         actions = {
             "send[direct]": self.send_direct,
@@ -131,8 +141,8 @@ class RequestHandler:
         }
 
         action = actions.get(request_type)
-
-        if action is None:
+        if not action:
+            print(f"no handler for request type: {request_type}")
             return
 
-        await action(user_id, request)
+        await action(user_id, validated)

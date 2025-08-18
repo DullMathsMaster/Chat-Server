@@ -49,11 +49,11 @@ class SendDirect(Action):
 
 
 action_models = {
-    "Update": Update,
-    "RecvUser": RecvUser,
-    "GetUser": GetUser,
-    "SetUser": SetUser,
-    "RecvDirect": RecvDirect,
-    "GetDirect": GetDirect,
-    "SendDirect": SendDirect,
+    "update": Update,
+    "recv[user]": RecvUser,
+    "get[user]": GetUser,
+    "set[user]": SetUser,
+    "recv[direct]": RecvDirect,
+    "get[direct]": GetDirect,
+    "send[direct]": SendDirect,
 }

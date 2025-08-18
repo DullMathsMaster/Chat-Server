@@ -82,7 +82,7 @@ class DB:
         return message.sequence_no
 
     async def return_conversation(
-        self, sender: int, recipient: int, timestamp: int, limit: int = 100
+        self, sender: int, timestamp: int, limit: int = 100
     ) -> list[Message]:
         """
         Returns conversation between two users as a list of tuples.
@@ -92,7 +92,11 @@ class DB:
 
         messages = (
             db.query(Message)
-            .filter(has_chat(sender, recipient), Message.timestamp >= timestamp)
+            .filter(or_(
+            Message.sender == sender,
+            Message.recipient == sender
+            ),
+            Message.timestamp >= timestamp)
             .order_by(Message.timestamp.asc())
             .limit(limit)
             .all()
