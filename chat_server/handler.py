@@ -41,7 +41,7 @@ class RequestHandler:
         match = request.user_id
         user = await self.db.find_user(match)
         
-        if not user:
+        if user is None:
             print(f"user {user_id} not found")
             return
 
@@ -80,6 +80,10 @@ class RequestHandler:
         sequence_no = request.seq_no
 
         message = await self.db.get_message(user_id, recipient, sequence_no)
+
+        if message is None:
+            # Message not found
+            return
 
         data = dumps(
             {
@@ -121,7 +125,7 @@ class RequestHandler:
         request_type = request.get("type")
         model_cls = action_models.get(request_type)
 
-        if not model_cls:
+        if model_cls is None:
             print(f"unknown request type: {request_type}")
             return
 
@@ -141,7 +145,8 @@ class RequestHandler:
         }
 
         action = actions.get(request_type)
-        if not action:
+
+        if action is None:
             print(f"no handler for request type: {request_type}")
             return
 
